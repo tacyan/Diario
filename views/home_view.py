@@ -99,80 +99,71 @@ class HomeView:
                 ),
                 on_click=lambda _: self.app.navigate("calendar")
             ),
-            ft.ElevatedButton(
-                "気分分析",
-                icon=ft.icons.INSIGHTS,
-                style=ft.ButtonStyle(
-                    shape=ft.RoundedRectangleBorder(radius=10),
-                ),
-                on_click=lambda _: self.app.navigate("analytics")
-            ),
+        ], wrap=True, spacing=10)
+        
+        # 最近の日記
+        recent_entries = self._build_recent_entries()
+        
+        # プロンプトカード
+        import random
+        random_prompts = random.sample(self.prompts, min(3, len(self.prompts)))
+        prompt_cards = ft.Column([
+            PromptCard(
+                prompt=prompt,
+                on_write=lambda p=prompt: self._on_prompt_selected(p)
+            )
+            for prompt in random_prompts
         ], spacing=10)
         
-        # 最近の日記エントリー
-        recent_entries_container = ft.Container(
-            content=self._build_recent_entries(),
-            margin=ft.margin.only(top=20, bottom=20)
-        )
+        # 小さなカレンダー
+        this_month = today.month
+        this_year = today.year
+        mini_calendar = self._build_month_calendar(this_year, this_month)
         
-        # 今月の記録状況カレンダー
-        month_calendar = self._build_month_calendar(today.year, today.month)
-        
-        # 今日の気分トラッカー
+        # 気分トラッカー
         mood_tracker = MoodTracker(
-            on_mood_selected=self._on_mood_selected
+            on_mood_selected=self._on_mood_selected,
         )
         
-        # ランダムプロンプト
-        import random
-        random_prompt = random.choice(self.prompts)
-        prompt_card = PromptCard(
-            prompt=random_prompt,
-            on_write=lambda: self.app.navigate("editor")
-        )
-        
-        # 左側のカラム（日付、最近の日記）
-        left_column = ft.Column([
+        # レイアウト構築
+        left_panel = ft.Column([
             date_display,
             quick_access,
-            ft.Container(
-                content=ft.Text("最近の日記", size=20, weight=ft.FontWeight.BOLD),
-                margin=ft.margin.only(top=30, bottom=10)
-            ),
-            recent_entries_container,
+            ft.Container(height=20),  # スペーサー
+            ft.Text("今日の気分", size=16, weight=ft.FontWeight.W_500),
+            mood_tracker,
+            ft.Container(height=20),  # スペーサー
+            ft.Text("今月", size=16, weight=ft.FontWeight.W_500),
+            mini_calendar,
         ], expand=3)
         
-        # 右側のカラム（カレンダー、気分トラッカー、プロンプト）
-        right_column = ft.Column([
+        right_panel = ft.Column([
             ft.Container(
-                content=ft.Text("今月のカレンダー", size=18, weight=ft.FontWeight.BOLD),
-                margin=ft.margin.only(bottom=10)
+                content=ft.Text("最近の日記", size=18, weight=ft.FontWeight.W_500),
+                margin=ft.margin.only(bottom=10),
             ),
-            month_calendar,
+            recent_entries,
+            ft.Container(height=20),  # スペーサー
             ft.Container(
-                content=ft.Text("今日の気分", size=18, weight=ft.FontWeight.BOLD),
-                margin=ft.margin.only(top=30, bottom=10)
+                content=ft.Text("書くためのヒント", size=18, weight=ft.FontWeight.W_500),
+                margin=ft.margin.only(bottom=10),
             ),
-            mood_tracker,
-            ft.Container(
-                content=ft.Text("インスピレーション", size=18, weight=ft.FontWeight.BOLD),
-                margin=ft.margin.only(top=30, bottom=10)
-            ),
-            prompt_card,
-        ], expand=2)
+            prompt_cards,
+        ], expand=7)
         
-        # ホーム画面全体のレイアウト
+        # レスポンシブレイアウト
+        layout = ft.ResponsiveRow([
+            ft.Column([left_panel], col={"sm": 12, "md": 4, "lg": 3, "xl": 2}),
+            ft.Column([right_panel], col={"sm": 12, "md": 8, "lg": 9, "xl": 10}),
+        ])
+        
+        # スクロール可能なコンテナとして返す
         return ft.Container(
-            content=ft.ResponsiveRow([
-                ft.Column([
-                    ft.Row([
-                        left_column,
-                        ft.VerticalDivider(width=1),
-                        right_column,
-                    ], expand=True),
-                ], col={"sm": 12})
-            ]),
+            content=ft.Column([layout], scroll=ft.ScrollMode.AUTO, auto_scroll=False),
             padding=20,
+            margin=ft.margin.all(0),
+            width=float('inf'),
+            height=float('inf'),
         )
     
     def _build_recent_entries(self):
@@ -205,6 +196,7 @@ class HomeView:
                 entry_cards,
                 spacing=10,
                 scroll=ft.ScrollMode.AUTO,
+                auto_scroll=False,
                 height=400
             )
         
@@ -372,4 +364,20 @@ class HomeView:
         else:
             # 新しいエントリーを作成
             self.app.current_mood = mood
-            self.app.navigate("editor") 
+            self.app.navigate("editor")
+    
+    def _on_prompt_selected(self, prompt):
+        """
+        プロンプトが選択されたときのイベントハンドラ。
+        選択されたプロンプトをエディタービューに渡します。
+        
+        Args:
+            prompt (str): 選択されたプロンプト
+        """
+        logger.info(f"プロンプトが選択されました: {prompt}")
+        
+        # プロンプトをアプリの状態に保存
+        self.app.current_prompt = prompt
+        
+        # エディタービューに移動
+        self.app.navigate("editor") 

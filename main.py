@@ -75,10 +75,13 @@ class DiarioApp:
         
         # レスポンシブ設定
         self.page.responsive = True
-        self.page.window_width = 1000
-        self.page.window_height = 800
-        self.page.window_min_width = 400
-        self.page.window_min_height = 600
+        self.page.window.width = 1000
+        self.page.window.height = 800
+        self.page.window.min_width = 400
+        self.page.window.min_height = 600
+        
+        # スクロール設定
+        self.page.scroll = ft.ScrollMode.AUTO
         
         # ビューの初期化
         self.views = {
@@ -107,25 +110,25 @@ class DiarioApp:
             ],
         )
         
-        # ナビゲーションバー
+        # ナビゲーションバー（画面下部のメニュー）
         self.page.navigation_bar = ft.NavigationBar(
             destinations=[
-                ft.NavigationDestination(
+                ft.NavigationBarDestination(
                     icon=ft.icons.HOME_OUTLINED,
                     selected_icon=ft.icons.HOME,
                     label="ホーム",
                 ),
-                ft.NavigationDestination(
+                ft.NavigationBarDestination(
                     icon=ft.icons.EDIT_OUTLINED,
                     selected_icon=ft.icons.EDIT,
                     label="新規作成",
                 ),
-                ft.NavigationDestination(
+                ft.NavigationBarDestination(
                     icon=ft.icons.CALENDAR_MONTH_OUTLINED,
                     selected_icon=ft.icons.CALENDAR_MONTH,
                     label="カレンダー",
                 ),
-                ft.NavigationDestination(
+                ft.NavigationBarDestination(
                     icon=ft.icons.ANALYTICS_OUTLINED,
                     selected_icon=ft.icons.ANALYTICS,
                     label="分析",

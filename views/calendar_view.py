@@ -132,15 +132,18 @@ class CalendarView:
             weight=ft.FontWeight.BOLD,
         )
         
+        # メインコンテンツを含むスクロール可能なコンテナ
+        main_content = ft.Column([
+            calendar_container,
+            entries_header,
+            self.entries_list,
+        ], scroll=ft.ScrollMode.AUTO, auto_scroll=False)
+        
         # 全体のレイアウト
         return ft.Stack([
             # メインコンテンツ
             ft.Container(
-                content=ft.Column([
-                    calendar_container,
-                    entries_header,
-                    self.entries_list,
-                ]),
+                content=main_content,
                 padding=20,
                 width=float('inf'),
                 height=float('inf'),
